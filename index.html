@@ -1,0 +1,183 @@
+
+<html>
+  <head>
+    <title>FURYAXL ELECTRONIC</title>
+    <meta name="description" content="Simple logic/switchboard simulator. Pardon the cheesy name.">
+    <link rel="icon" href="pelement.png">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,700" rel="stylesheet" type="text/css">
+  </head>
+  <body oncontextmenu="openContext(event); return false" onclick="clickID=-1">
+    <canvas id="grid"></canvas>
+    <canvas id="playarea"></canvas>
+    <div id="maincontent" class="select" simulation="false">
+    </div>
+    <div id="selectsquare"></div>
+    <div id="selection">
+      <div id="wrapperwrapper">
+        <div class="wrapper">
+          <div id="logowrapper">
+            <div id="logo"></div>
+            <div id="version">1.0</div>
+          </div>
+          <div id="doctitle">untitled switchboard</div>
+        </div>
+      </div>
+      <div id="coords">[0,0]</div>
+    </div>
+    <div id="toolmenu">
+      <div id="infosquare">
+        <span id="innerinfo">0 components | 0 wires</span>
+        <div id="errorinfo"><span id="erroricon"></span><span id="innererror">ERROR!</span></div>
+      </div>
+      <div class="spacer" style="margin-left:20px"></div>
+      <div class="actionbutton" onclick="setButtons(0); selectButton('actionbutton',0)" title="Normal [B]" selected></div>
+      <div class="actionbutton" onclick="setButtons(1); selectButton('actionbutton',1)" style="background-position:-40px 0" title="Draw wires [N]"></div>
+      <div class="actionbutton" onclick="setButtons(2); selectButton('actionbutton',2)" style="background-position:-80px 0" title="Move edit area [M]"></div>
+      <div class="spacer" style="margin-left:15px"></div>
+      <div class="actionbutton" style="background-position:-320px 0" sel="false" label="Undo" onclick="historyBack()"></div>
+      <div class="actionbutton" style="background-position:-360px 0" sel="false" label="Redo" onclick="historyForward()"></div>
+      <div class="spacer" style="margin-left:15px"></div>
+      <div id="playpause" onclick="toggleSimulation()" state="off">
+        <div id="ppicon"></div>
+        <div id="statemsg"></div>
+      </div>
+      <div class="optionbutton" style="background-position:-279px 0" sel="false" label="More"></div>
+      <div class="optionbutton" style="background-position:-240px 0" sel="false" label="Share" onclick="openExport()"></div>
+      <div class="optionbutton" style="background-position:-400px 0" sel="false" label="Save as" onclick="openSaveAs(null)"></div>
+      <div class="optionbutton" style="background-position:-200px 0" sel="false" label="Save" onclick="openPopup(1,null); save();"></div>
+      <div class="optionbutton" style="background-position:-160px 0" sel="false" label="Open" onclick="openOpen()"></div>
+      <div class="optionbutton" style="background-position:-120px 0" sel="false" label="New" onclick="createNew()"></div>
+    </div>
+    <div id="context">
+      <div class="contextitem" onclick="deleteElement(); saveHistory()">Delete object</div>
+      <div class="contextitem" onclick="deleteWires(); saveHistory()">Delete wire cluster</div>
+      <div class="contextitem" onclick="toggleSubmenu(this,0)">Inputs<span class="chevron">&#9658;</span></div>
+      <div class="contextitem" onclick="toggleSubmenu(this,1)">Gate type<span class="chevron">&#9658;</span></div>
+      <div class="contextitem" onclick="toggleSubmenu(this,2)">Input location<span class="chevron">&#9658;</span></div>
+      <div class="contextitem" onclick="toggleSubmenu(this,3)">Bits<span class="chevron">&#9658;</span></div>
+      <div class="contextitem" onclick="toggleSubmenu(this,4)">Input location<span class="chevron">&#9658;</span></div>
+    </div>
+    <div class="submenu">
+      <div class="submenuitem" onclick="relayInput(moveElem,2); saveHistory()">2 inputs</div>
+      <div class="submenuitem" onclick="relayInput(moveElem,3); saveHistory()">3 inputs</div>
+      <div class="submenuitem" onclick="relayInput(moveElem,4); saveHistory()">4 inputs</div>
+      <div class="submenuitem" onclick="relayInput(moveElem,5); saveHistory()">5 inputs</div>
+      <div class="submenuitem" onclick="relayInput(moveElem,6); saveHistory()">6 inputs</div>
+      <div class="submenuitem" onclick="relayInput(moveElem,7); saveHistory()">7 inputs</div>
+      <div class="submenuitem" onclick="relayInput(moveElem,8); saveHistory()">8 inputs</div>
+    </div>
+    <div class="submenu">
+      <div class="submenuitem" onclick="setType('and'); saveHistory()">AND gate</div>
+      <div class="submenuitem" onclick="setType('not and'); saveHistory()">NAND gate</div>
+      <div class="submenuitem" onclick="setType('or'); saveHistory()">OR gate</div>
+      <div class="submenuitem" onclick="setType('not or'); saveHistory()">NOR gate</div>
+      <div class="submenuitem" onclick="setType('xor'); saveHistory()">XOR gate</div>
+      <div class="submenuitem" onclick="setType('not xor'); saveHistory()">XNOR gate</div>
+      <div class="submenuitem" onclick="setType('not'); saveHistory()">NOT gate</div>
+    </div>
+    <div class="submenu">
+      <div class="submenuitem" onclick="setDir('left'); saveHistory()">Left</div>
+      <div class="submenuitem" onclick="setDir('top'); saveHistory()">Top</div>
+      <div class="submenuitem" onclick="setDir('right'); saveHistory()">Right</div>
+      <div class="submenuitem" onclick="setDir('bottom'); saveHistory()">Bottom</div>
+    </div>
+    <div class="submenu">
+      <div class="submenuitem" onclick="setMux(2); saveHistory()">2 bits</div>
+      <div class="submenuitem" onclick="setMux(4); saveHistory()">4 bits</div>
+      <div class="submenuitem" onclick="setMux(8); saveHistory()">8 bits</div>
+    </div>
+    <div class="submenu">
+      <div class="submenuitem" onclick="setMuxInp('bottom'); saveHistory()">Bottom</div>
+      <div class="submenuitem" onclick="setMuxInp('top'); saveHistory()">Top</div>
+    </div>
+    <div id="shadow">
+      <div class="popup">
+        <div class="popuptitle" id="title_export">Share switchboard</div>
+        <div class="closebtn" onclick="closePopups()"></div>
+        <div id="exportwrapper">
+          <input id="exportfield" spellcheck="false"></input>
+          <button id="copybtn" onclick="copyLink()">Copy link</button>
+        </div>
+      </div>
+      <div class="popup" id="save">
+        <div class="popuptitle">Save switchboard?</div>
+        <div class="closebtn" onclick="closePopups()"></div>
+        <div id="prompttext">Save untitled?</div>
+        <button class="popupbtn" onclick="save()">Save</button>
+        <button class="popupbtn" onclick="noSave()">Don't Save</button>
+        <button class="popupbtn" onclick="closePopups()">Cancel</button>
+      </div>
+      <div class="popup" id="saveas">
+        <div class="popuptitle">Save As</div>
+        <div class="closebtn" onclick="closePopups()"></div>
+        <div class="filewindow">No items to display</div>
+        <input class="searchfield" spellcheck="false"></input>
+        <button class="popupbtn" onclick="finalSave(this)">Save</button>
+        <button class="popupbtn" onclick="noSave()">Don't Save</button>
+        <button class="popupbtn" onclick="closePopups()">Cancel</button>
+      </div>
+      <div class="popup" id="open">
+        <div class="popuptitle">Open switchboard</div>
+        <div class="closebtn" onclick="closePopups()"></div>
+        <div class="filewindow">No items to display</div>
+        <input class="searchfield" spellcheck="false"></input>
+        <button class="popupbtn" onclick="finalOpen(this)">Open</button>
+        <button class="popupbtn" onclick="closePopups()">Cancel</button>
+      </div>
+    </div>
+    <div id="modules" style="display:none">
+      <div id="displaybuffer">
+        <div class="digit" value="0"></div>
+        <div class="gateinput" state="null" connected="false"></div>
+        <div class="gateinput" state="null" connected="false"></div>
+        <div class="gateinput" state="null" connected="false"></div>
+        <div class="gateinput" state="null" connected="false"></div>
+      </div>
+      <div id="ledbuffer">
+        <div class="ldiode" state="off"></div>
+        <div class="gateinput" state="null" connected="false" pos="left"></div>
+      </div>
+      <div id="booleanbuffer">
+        <div class="inputstate"></div>
+        <div class="gateoutput" state="0" connected="false" pos="left"></div>
+        <div class="gateoutput" state="0" connected="false" pos="right"></div>
+        <div class="gateoutput" state="0" connected="false" pos="top"></div>
+        <div class="gateoutput" state="0" connected="false" pos="bottom"></div>
+      </div>
+      <div id="muxbuffer">
+        <div class="gateinput" state="0" connected="false"></div>
+        <div class="gateinput" state="0" connected="false"></div>
+        <div class='gateinput' state='0' connected='false' pos='bottom'></div>
+        <div class="gateoutput" state="0" connected="false" pos="right"></div>
+        <svg width='60' height='200'>
+          <path d='M2 2 L58 10 L58 50 L2 58 Z'/>
+        </svg>
+        <div class='gatepointer'></div>
+      </div>
+      <div id="demuxbuffer">
+        <div class="gateoutput" state="0" connected="false"></div>
+        <div class="gateoutput" state="0" connected="false"></div>
+        <div class="gateinput" state="0" connected="false" pos="bottom"></div>
+        <div class="gateinput" state="0" connected="false" pos="left"></div>
+        <svg width="60" height="200">
+          <path d="M2 10 L58 2 L58 58 L2 50 Z"/>
+        </svg>
+        <div class="gateoutpointer"></div>
+      </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/3.6.4/firebase.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/3.6.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/3.6.2/firebase-storage.js"></script>
+    <script>
+      var config = {
+        apiKey: "AIzaSyDBkPAa8o7xohg9hnYr5FFsuhRK-Z0PO94",
+        authDomain: "boolflo-cee6f.firebaseapp.com",
+        databaseURL: "https://boolflo-cee6f.firebaseio.com",
+        storageBucket: "boolflo-cee6f.appspot.com",
+        messagingSenderId: "777120446425"
+      };
+      firebase.initializeApp(config);
+    </script>
+  </body>
+</html>
